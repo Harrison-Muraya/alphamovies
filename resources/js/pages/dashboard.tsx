@@ -1,35 +1,60 @@
-import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
-import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/react';
+import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import Header from '../components/Header';
+import Hero from '../components/Hero';
+import MovieRow from '../components/MovieRow';
+import { fetchTrendingMovies, fetchTrendingTv, fetchTopRatedMovies, fetchUpcomingMovies } from '../services/tmdb';
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Dashboard',
-        href: '/dashboard',
-    },
-];
+const Index = () => {
+    const [selectedContent, setSelectedContent] = useState(null);
 
-export default function Dashboard() {
+    const { data: trendingMovies } = useQuery({
+        queryKey: ['trendingMovies'],
+        queryFn: fetchTrendingMovies,
+    });
+
+    const { data: trendingTv } = useQuery({
+        queryKey: ['trendingTv'],
+        queryFn: fetchTrendingTv,
+    });
+
+    const { data: topRatedMovies } = useQuery({
+        queryKey: ['topRatedMovies'],
+        queryFn: fetchTopRatedMovies,
+    });
+
+    const { data: upcomingMovies } = useQuery({
+        queryKey: ['upcomingMovies'],
+        queryFn: fetchUpcomingMovies,
+    });
+
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Dashboard" />
-            <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
-                <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-                    <div className="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                        <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
-                    </div>
-                    <div className="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                        <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
-                    </div>
-                    <div className="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                        <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
-                    </div>
-                </div>
-                <div className="relative min-h-[100vh] flex-1 overflow-hidden rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border">
-                    <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
-                </div>
+        <div className="min-h-screen bg-black text-white">
+            <Header />
+
+            {trendingMovies && trendingMovies.results && trendingMovies.results.length > 0 && (
+                <Hero movie={trendingMovies.results[0]} />
+            )}
+
+            <div className="relative z-10 -mt-32 space-y-8 pb-20">
+                {trendingMovies && (
+                    <MovieRow title="Trending Now" movies={trendingMovies.results} />
+                )}
+
+                {topRatedMovies && (
+                    <MovieRow title="Top Rated Movies" movies={topRatedMovies.results} />
+                )}
+
+                {trendingTv && (
+                    <MovieRow title="Popular TV Shows" movies={trendingTv.results} />
+                )}
+
+                {upcomingMovies && (
+                    <MovieRow title="Coming Soon" movies={upcomingMovies.results} />
+                )}
             </div>
-        </AppLayout>
+        </div>
     );
-}
+};
+
+export default Index;
